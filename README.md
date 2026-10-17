@@ -177,3 +177,7 @@ Caddy handles routing and certificates once DNS resolves to the server.
 ## Security Note
 
 Aeroplane runs deployment workloads on your server through Docker. Only install it on infrastructure you control, and only grant access to trusted users.
+
+### Read-only VPS overview
+
+Discover existing Docker/Compose workloads and inspect service health separately from managed projects. Owner-only access, bounded host metrics history, and explicit host collector capability reporting. See [configuration and limitations](docs/read-only-observability.md).

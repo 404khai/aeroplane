@@ -1,3 +1,6 @@
+import { getManagedContainers } from "./observability/managed-containers.js";
+import { createObservabilitySampler } from "./observability/observability-sampler.js";
+import { registerObservabilityRoutes } from "./observability/observability-routes.js";
 import { serve } from "@hono/node-server";
 import { serveStatic } from "@hono/node-server/serve-static";
 import { and, asc, desc, eq, inArray } from "drizzle-orm";
@@ -1772,6 +1775,8 @@ app.post("/api/system/settings", async (c) => {
 registerApiKeyRoutes(app);
 registerBackupStorageRoutes(app);
 registerSystemUserRoutes(app);
+const observability = createObservabilitySampler(getManagedContainers);
+registerObservabilityRoutes(app, observability.getSnapshot);
 
 app.get("/api/system/r2", (c) => c.json({ r2: publicR2Settings() }));
 

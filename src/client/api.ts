@@ -724,6 +724,7 @@ function downloadFile(blob: Blob, fileName: string) {
 }
 
 export const api = {
+  observability: () => request<import("../shared/observability").ObservabilitySnapshot>("/api/system/observability"),
   authStatus: () => request<AuthStatus>("/api/auth/status"),
   login: (body: { email: string; password: string }) =>
     request<{ ok: boolean; user: AuthUser }>("/api/auth/login", { method: "POST", body: JSON.stringify(body) }),

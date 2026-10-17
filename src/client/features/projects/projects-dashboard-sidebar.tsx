@@ -77,7 +77,7 @@ export function ProjectsDashboardSidebar({
             to="/settings/$settingsPage"
             params={{ settingsPage: "vps-overview" }}
             aria-current={overview ? "page" : undefined}
-            className={`mt-1 flex h-11 items-center gap-3 px-3 text-sm ${overview ? "border-l-2 border-teal-400 bg-white/10 text-white" : "text-zinc-500 hover:text-white"}`}
+            className={`mt-1 flex h-11 items-center gap-3 px-3 text-sm ${overview ? "border-l-2 border-white bg-white/10 text-white" : "text-zinc-500 hover:text-white"}`}
           >
             VPS overview
           </Link>

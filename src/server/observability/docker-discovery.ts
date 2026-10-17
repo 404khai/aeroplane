@@ -28,6 +28,8 @@ export type ManagedContainer = {
   name: string;
   projectId: string;
   projectName: string;
+  domains?: string[];
+  projectSlug?: string;
 };
 
 export function parseContainerList(output: string): ContainerSummary[] {
@@ -84,6 +86,7 @@ export function groupContainers(
       id,
       name,
       kind,
+      managedSlug: owned?.projectSlug,
       compose: !owned && !infrastructure && Boolean(row.project),
       services: [],
     };

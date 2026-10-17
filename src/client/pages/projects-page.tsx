@@ -2,7 +2,6 @@ import { useNavigate } from "@tanstack/react-router";
 import { startTransition, useCallback, useEffect, useMemo, useState } from "react";
 import {
   api,
-  type AuthUser,
   type GitHubStatus,
   type ProjectCard,
   type R2SettingsStatus,
@@ -33,6 +32,7 @@ import {
   type SystemSettingsTab,
 } from "../features/settings/settings-pages";
 import { serviceIsDeploying } from "../lib/deployment-status";
+import { useAuthStatus } from "../components/auth/auth-context";
 import { usePageTitle } from "../lib/page-title";
 
 export function ProjectsPage() {
@@ -41,7 +41,7 @@ export function ProjectsPage() {
 
   const [projects, setProjects] = useState<ProjectCard[]>([]);
   const [tools, setTools] = useState<ToolCheck[]>([]);
-  const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
+  const currentUser = useAuthStatus()?.user ?? null;
   const [githubStatus, setGitHubStatus] = useState<GitHubStatus | null>(null);
   const [domainSettings, setDomainSettings] = useState<
     Awaited<ReturnType<typeof api.systemSettings>> | null
@@ -63,14 +63,12 @@ export function ProjectsPage() {
       if (showLoading) setSetupLoading(true);
       try {
         const [
-          authData,
           projectData,
           systemData,
           githubData,
           domainData,
           r2Data,
         ] = await Promise.all([
-          api.authStatus(),
           api.projects(),
           api.system().catch(() => ({ tools: [] })),
           api.githubStatus().catch(() => null),
@@ -81,7 +79,6 @@ export function ProjectsPage() {
             .catch(() => null),
         ]);
         startTransition(() => {
-          setCurrentUser(authData.user);
           setProjects(projectData.projects);
           setTools(systemData.tools);
           setGitHubStatus(githubData);

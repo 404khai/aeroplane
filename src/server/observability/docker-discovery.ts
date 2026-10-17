@@ -9,7 +9,7 @@ import { parseBytes } from "./metrics-math.js";
 export const listFormat =
   '{"id":{{json .ID}},"name":{{json .Names}},"state":{{json .State}},"project":{{json (.Label "com.docker.compose.project")}},"service":{{json (.Label "com.docker.compose.service")}},"role":{{json (.Label "io.aeroplane.role")}}}';
 export const detailFormat =
-  '{"id":{{json .Id}},"state":{{json .State.Status}},"startedAt":{{json .State.StartedAt}},"restarts":{{json .RestartCount}},"health":{{if .State.Health}}{{json .State.Health.Status}}{{else}}"none"{{end}}}';
+  '{"id":{{json .Id}},"state":{{json .State.Status}},"startedAt":{{json .State.StartedAt}},"restarts":{{json .RestartCount}},"health":{{if (index .State "Health")}}{{json .State.Health.Status}}{{else}}"none"{{end}}}';
 export type ContainerSummary = {
   id: string;
   name: string;

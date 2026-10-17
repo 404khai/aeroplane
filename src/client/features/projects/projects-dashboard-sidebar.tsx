@@ -1,8 +1,5 @@
-import {
-  FolderCodeIcon,
-  Settings01Icon,
-} from "@hugeicons/core-free-icons";
-import { Link } from "@tanstack/react-router";
+import { FolderCodeIcon, Settings01Icon } from "@hugeicons/core-free-icons";
+import { Link, useLocation } from "@tanstack/react-router";
 import type { AuthUser, ToolCheck } from "../../api";
 import { SignOutButton } from "../../components/auth/sign-out-button";
 import { BrandMark } from "../../components/ui/brand-mark";
@@ -32,15 +29,18 @@ export function ProjectsDashboardSidebar({
   currentUser,
   tools,
   owner,
+  showSystemHealth = true,
   contextLabel,
-  contextItems = []
+  contextItems = [],
 }: {
   currentUser: AuthUser | null;
   tools: ToolCheck[];
   owner: boolean;
+  showSystemHealth?: boolean;
   contextLabel?: string;
   contextItems?: DashboardSidebarItem[];
 }) {
+  const overview = useLocation().pathname === "/settings/vps-overview";
   return (
     <aside className="relative z-20 flex items-center border-b border-white/10 bg-black px-5 py-4 lg:sticky lg:top-0 lg:h-dvh lg:flex-col lg:items-stretch lg:border-b-0 lg:border-r lg:px-5 lg:py-6">
       <div className="flex items-center gap-3">
@@ -57,18 +57,31 @@ export function ProjectsDashboardSidebar({
         </div>
       </div>
 
-      <nav aria-label="Dashboard" className="mt-10 hidden min-h-0 flex-1 overflow-y-auto lg:block">
+      <nav
+        aria-label="Dashboard"
+        className="mt-10 hidden min-h-0 flex-1 overflow-y-auto lg:block"
+      >
         <p className="mb-3 px-3 font-mono text-[8px] uppercase tracking-[0.2em] text-zinc-600">
           Workspace
         </p>
         <Link
           to="/"
-          aria-current="page"
-          className="flex h-11 items-center gap-3 border-l-2 border-white bg-white/10 px-3 text-white transition hover:bg-white/15"
+          aria-current={overview ? undefined : "page"}
+          className={`flex h-11 items-center gap-3 border-l-2 px-3 transition hover:bg-white/15 ${overview ? "border-transparent text-zinc-500" : "border-white bg-white/10 text-white"}`}
         >
           <AppIcon icon={FolderCodeIcon} size={16} />
           <span className="text-sm">Projects</span>
         </Link>
+        {owner && (
+          <Link
+            to="/settings/$settingsPage"
+            params={{ settingsPage: "vps-overview" }}
+            aria-current={overview ? "page" : undefined}
+            className={`mt-1 flex h-11 items-center gap-3 px-3 text-sm ${overview ? "border-l-2 border-teal-400 bg-white/10 text-white" : "text-zinc-500 hover:text-white"}`}
+          >
+            VPS overview
+          </Link>
+        )}
         <Link
           to="/settings/$settingsPage"
           params={{ settingsPage: "domains" }}
@@ -98,7 +111,9 @@ export function ProjectsDashboardSidebar({
                 >
                   <AppIcon icon={item.icon} size={15} />
                   <span className="min-w-0 flex-1 truncate">{item.label}</span>
-                  {item.attention ? <span className="h-1.5 w-1.5 bg-amber-400" /> : null}
+                  {item.attention ? (
+                    <span className="h-1.5 w-1.5 bg-amber-400" />
+                  ) : null}
                 </button>
               ))}
             </div>
@@ -106,8 +121,17 @@ export function ProjectsDashboardSidebar({
         ) : null}
       </nav>
 
+      {owner && (
+        <Link
+          to="/settings/$settingsPage"
+          params={{ settingsPage: "vps-overview" }}
+          className="ml-auto px-3 text-xs text-teal-300 lg:hidden"
+        >
+          VPS overview
+        </Link>
+      )}
       <div className="ml-auto flex items-center gap-2 lg:ml-0 lg:mt-auto lg:block">
-        {owner ? (
+        {owner && showSystemHealth ? (
           <div className="hidden lg:block">
             <SystemHealthPill tools={tools} />
           </div>

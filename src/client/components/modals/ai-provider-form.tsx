@@ -68,7 +68,7 @@ export function AiProviderForm({
   return (
     <form onSubmit={saveCredentials} className="space-y-4 border border-zinc-800 bg-zinc-950/45 p-5">
       <div className="flex items-start gap-3">
-        <div className={`grid h-11 w-11 shrink-0 place-items-center border ${provider.logoFrameClass}`}>
+        <div className="grid h-11 w-11 shrink-0 place-items-center border border-zinc-800 bg-zinc-950/55">
           <img src={provider.logoUrl} alt="" className="max-h-7 max-w-8 object-contain" />
         </div>
         <div>

@@ -11,6 +11,7 @@
     "build": "vite build && tsc -p tsconfig.server.json",
     "start": "NODE_ENV=production node dist/server/index.js",
     "publish:image": "docker buildx build --platform linux/amd64,linux/arm64 --build-arg AEROPLANE_COMMIT_SHA=$(git rev-parse HEAD) -t ghcr.io/xt42io/aeroplane:latest --push .",
+    "test:observability": "node --import tsx --test tests/observability-*.test.ts",
     "typecheck": "tsc --noEmit && tsc -p tsconfig.server.json --noEmit"
   },
   "keywords": [

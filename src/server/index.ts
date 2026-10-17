@@ -1,3 +1,6 @@
+import { routeDeclarations } from "./observability/route-declarations.js";
+import { registerExternalDatabaseRoutes } from "./external-databases/database-routes.js";
+import { registerDrilldownRoutes } from "./observability/drilldown-routes.js";
 import { getManagedContainers } from "./observability/managed-containers.js";
 import { createObservabilitySampler } from "./observability/observability-sampler.js";
 import { registerObservabilityRoutes } from "./observability/observability-routes.js";
@@ -1775,8 +1778,10 @@ app.post("/api/system/settings", async (c) => {
 registerApiKeyRoutes(app);
 registerBackupStorageRoutes(app);
 registerSystemUserRoutes(app);
-const observability = createObservabilitySampler(getManagedContainers);
+const observability = createObservabilitySampler(getManagedContainers, { routes: routeDeclarations });
 registerObservabilityRoutes(app, observability.getSnapshot);
+registerDrilldownRoutes(app, observability);
+registerExternalDatabaseRoutes(app, observability.getSnapshot);
 
 app.get("/api/system/r2", (c) => c.json({ r2: publicR2Settings() }));
 

@@ -1,3 +1,4 @@
+import { parseTopology, topologyFormat } from "./topology.js";
 import type { ContainerUsage } from "../../shared/observability.js";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
@@ -54,6 +55,35 @@ export async function collectDocker(read = dockerRead) {
       /* Report unavailable detail on individual services. */
     }
   }
+  const topology = new Map<
+    string,
+    import("../../shared/observability.js").ServiceTopology
+  >();
+  if (rows.length) {
+    try {
+      let output = "";
+      try {
+        output = await read([
+          "inspect",
+          "--type",
+          "container",
+          "--format",
+          topologyFormat,
+          ...rows.map((row) => row.id),
+        ]);
+      } catch (error) {
+        output =
+          typeof (error as { stdout?: unknown }).stdout === "string"
+            ? (error as { stdout: string }).stdout
+            : "";
+      }
+      for (const [id, value] of parseTopology(output)) {
+        if (rows.some((row) => row.id === id)) topology.set(id, value);
+      }
+    } catch {
+      /* Detail panel explicitly shows unknown topology. */
+    }
+  }
   let usage = new Map<string, ContainerUsage>();
   let statsAvailable = true;
   const running = rows.filter((row) => row.state === "running");
@@ -80,5 +110,11 @@ export async function collectDocker(read = dockerRead) {
       ? "Some service details are unavailable; containers may have changed during discovery."
       : "",
   ].filter(Boolean);
-  return { rows, details, usage, message: messages.join(" ") || null };
+  return {
+    rows,
+    details,
+    usage,
+    topology,
+    message: messages.join(" ") || null,
+  };
 }

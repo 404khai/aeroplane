@@ -2,6 +2,8 @@ import type {
   ObservabilitySnapshot,
   HostSample,
 } from "../../shared/observability.js";
+import { createServiceHistory } from "./service-history.js";
+import { createAlertTracker } from "./resource-alerts.js";
 import { collectDocker } from "./docker-collector.js";
 import { groupContainers, type ManagedContainer } from "./docker-discovery.js";
 import { createHostCollector } from "./host-collector.js";
@@ -17,10 +19,13 @@ export function createObservabilitySampler(
   collectors: {
     docker?: typeof collectDocker;
     host?: ReturnType<typeof createHostCollector>;
+    routes?: () => { serviceId: string; hostname: string }[];
   } = {},
 ) {
   const collectHost = collectors.host ?? createHostCollector();
   const sampleDocker = collectors.docker ?? collectDocker;
+  const services = createServiceHistory();
+  const alerts = createAlertTracker();
   let stopped = false;
   let history: HostSample[] = [];
   let snapshot: ObservabilitySnapshot | undefined;
@@ -56,6 +61,37 @@ export function createObservabilitySampler(
         : [],
       host: { ...host, history },
     };
+    const managed = managedContainers();
+    const routes = collectors.routes?.() ?? [];
+    for (const project of snapshot.projects)
+      for (const service of project.services) {
+        service.topology =
+          docker.data && "topology" in docker.data
+            ? docker.data.topology?.get(service.id)
+            : undefined;
+      }
+    for (const project of snapshot.projects)
+      for (const service of project.services) {
+        const declarations = routes.filter((r) => r.serviceId === service.id);
+        if (declarations.length && service.topology)
+          service.topology.domains.push(
+            ...declarations.map((r) => ({
+              hostname: r.hostname,
+              source: "Owner-declared route · not independently verified",
+            })),
+          );
+        const configured =
+          managed.find((m) => m.name === service.name)?.domains ?? [];
+        if (configured.length && service.topology)
+          service.topology.domains.push(
+            ...configured.map((hostname) => ({
+              hostname,
+              source: "Aeroplane domain configuration",
+            })),
+          );
+      }
+    services.record(snapshot);
+    alerts.record(snapshot);
     return snapshot;
   };
   const run = () => {
@@ -75,6 +111,9 @@ export function createObservabilitySampler(
   };
   return {
     getSnapshot: () => (snapshot ? Promise.resolve(snapshot) : run()),
+    serviceHistory: services.get,
+    incidents: alerts.list,
+    acknowledge: alerts.acknowledge,
     stop: () => {
       stopped = true;
       if (timer) clearTimeout(timer);

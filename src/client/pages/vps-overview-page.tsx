@@ -1,3 +1,5 @@
+import { ResourceAlertsPanel } from "../features/observability/resource-alerts-panel";
+import { StoragePanel } from "../features/observability/storage-panel";
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { api } from "../api";
@@ -100,9 +102,10 @@ export function VpsOverviewPage() {
                   <p className="text-xs text-zinc-500">
                     Sampled {new Date(snapshot.sampledAt).toLocaleString()} ·
                     refreshes every 15 seconds · up to one hour of in-memory
-                    host history
+                    host and service history
                   </p>
                   <HostMetricsPanel host={snapshot.host} />
+                  <ResourceAlertsPanel />
                   {snapshot.docker.message && (
                     <p
                       role="status"
@@ -112,7 +115,17 @@ export function VpsOverviewPage() {
                     </p>
                   )}
                   {snapshot.docker.available && (
-                    <WorkloadGroups projects={snapshot.projects} />
+                    <>
+                      <WorkloadGroups projects={snapshot.projects} />
+                      <details className="border border-zinc-800 p-5">
+                        <summary className="cursor-pointer text-lg">
+                          Detailed host storage
+                        </summary>
+                        <div className="mt-5">
+                          <StoragePanel projects={snapshot.projects} />
+                        </div>
+                      </details>
+                    </>
                   )}
                 </>
               )}

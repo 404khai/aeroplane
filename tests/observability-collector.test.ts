@@ -18,7 +18,7 @@ const detail = JSON.stringify({
   restarts: 2,
   health: "healthy",
 });
-test("collection uses only three bounded read operations with selected inspect fields", async () => {
+test("collection uses only four bounded read operations with selected inspect fields", async () => {
   const commands: string[][] = [];
   const result = await collectDocker(async (args) => {
     commands.push(args);
@@ -34,11 +34,11 @@ test("collection uses only three bounded read operations with selected inspect f
   });
   assert.deepEqual(
     commands.map((args) => args[0]),
-    ["ps", "inspect", "stats"],
+    ["ps", "inspect", "inspect", "stats"],
   );
   assert.ok(commands[0].includes("--all"));
   assert.ok(commands[1].includes("--format"));
-  assert.ok(commands[2].includes("--no-stream"));
+  assert.ok(commands[3].includes("--no-stream"));
   assert.equal(result.details.get(id)?.health, "healthy");
   assert.equal(result.usage.get(id)?.memoryBytes, 1024 ** 2);
 });
@@ -86,4 +86,33 @@ test("large hosts are capped and report truncation", async () => {
   );
   assert.equal(result.rows.length, 500);
   assert.match(result.message!, /500 containers/);
+});
+
+test("partial topology survives container churn without requesting bind source paths", async () => {
+  const topology = JSON.stringify({
+    id,
+    image: "postgres:17",
+    networks: ["shared", null],
+    mounts: [
+      { name: null, destination: "/data", type: "bind", writable: true },
+      null,
+    ],
+    depends: "",
+  });
+  const result = await collectDocker(async (args) => {
+    if (args[0] === "ps") return summary;
+    if (
+      args[0] === "inspect" &&
+      args.some((arg) => arg.includes('"networks"'))
+    ) {
+      assert.ok(args.some((arg) => arg.includes('index . "Name"')));
+      throw Object.assign(new Error("container disappeared"), {
+        stdout: topology,
+      });
+    }
+    if (args[0] === "inspect") return detail;
+    return "";
+  });
+  assert.equal(result.topology.get(id)?.mounts[0].name, "bind mount");
+  assert.deepEqual(result.topology.get(id)?.dependencies, []);
 });

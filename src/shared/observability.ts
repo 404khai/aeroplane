@@ -5,6 +5,7 @@ export type ContainerUsage = {
   memoryLimitBytes: number | null;
 };
 export type ObservedService = {
+  topology?: ServiceTopology;
   id: string;
   name: string;
   service: string;
@@ -15,11 +16,33 @@ export type ObservedService = {
   usage: ContainerUsage | null;
   detailAvailable: boolean;
 };
+export type ServiceTopology = {
+  networks: string[];
+  dependencies: string[];
+  domains: { hostname: string; source: string }[];
+  mounts: {
+    name: string;
+    destination: string;
+    type: string;
+    writable: boolean;
+  }[];
+  image: string;
+};
+export type ServiceSample = ContainerUsage & { timestamp: number };
+export type Incident = {
+  id: string;
+  target: string;
+  condition: string;
+  openedAt: number;
+  resolvedAt: number | null;
+  acknowledgedAt: number | null;
+};
 export type ObservedProject = {
   id: string;
   name: string;
   kind: WorkloadKind;
   compose: boolean;
+  managedSlug?: string;
   services: ObservedService[];
 };
 export type HostSample = {

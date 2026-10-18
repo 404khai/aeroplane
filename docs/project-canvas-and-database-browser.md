@@ -1,6 +1,6 @@
 # Project canvas and external service inspection
 
-The owner-only VPS overview now shows both discovered Docker Compose workloads and Aeroplane-managed containers on a project canvas. Selecting a card opens resource history, live log snapshots, network/route evidence, mount/image details, and registered PostgreSQL connections. Managed groups link back to their existing project page. Existing project and service management permissions are unchanged.
+Owner-only tools have separate main-sidebar entries with icons: VPS overview, Project canvas, Databases, Logs, Metrics, Alerts, Certificates and Storage. Each uses `/vps/<tool>`; `/vps` opens the overview, and existing `/settings/vps-overview` bookmarks remain valid. The overview contains host measurements. Project canvas contains discovered and managed Docker workloads with service drilldowns. Databases, Logs, Metrics and Certificates have direct service pickers, so opening a canvas card is optional. On small screens the same destinations are available through the workspace navigation selector. Managed groups link back to their existing project pages. Existing project and service management permissions are unchanged.
 
 ## Evidence and discovery
 

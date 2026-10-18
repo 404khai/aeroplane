@@ -1,3 +1,9 @@
+import { DashboardMobileNavigation } from "./dashboard-mobile-navigation";
+import {
+  activeVpsTool,
+  vpsTools,
+  workspaceSection,
+} from "../observability/vps-tools";
 import { FolderCodeIcon, Settings01Icon } from "@hugeicons/core-free-icons";
 import { Link, useLocation } from "@tanstack/react-router";
 import type { AuthUser, ToolCheck } from "../../api";
@@ -40,7 +46,9 @@ export function ProjectsDashboardSidebar({
   contextLabel?: string;
   contextItems?: DashboardSidebarItem[];
 }) {
-  const overview = useLocation().pathname === "/settings/vps-overview";
+  const pathname = useLocation().pathname;
+  const section = workspaceSection(pathname);
+  const activeTool = activeVpsTool(pathname);
   return (
     <aside className="relative z-20 flex items-center border-b border-white/10 bg-black px-5 py-4 lg:sticky lg:top-0 lg:h-dvh lg:flex-col lg:items-stretch lg:border-b-0 lg:border-r lg:px-5 lg:py-6">
       <div className="flex items-center gap-3">
@@ -66,26 +74,30 @@ export function ProjectsDashboardSidebar({
         </p>
         <Link
           to="/"
-          aria-current={overview ? undefined : "page"}
-          className={`flex h-11 items-center gap-3 border-l-2 px-3 transition hover:bg-white/15 ${overview ? "border-transparent text-zinc-500" : "border-white bg-white/10 text-white"}`}
+          aria-current={section === "projects" ? "page" : undefined}
+          className={`flex h-11 items-center gap-3 border-l-2 px-3 transition hover:bg-white/15 ${section === "projects" ? "border-white bg-white/10 text-white" : "border-transparent text-zinc-500"}`}
         >
           <AppIcon icon={FolderCodeIcon} size={16} />
           <span className="text-sm">Projects</span>
         </Link>
-        {owner && (
-          <Link
-            to="/settings/$settingsPage"
-            params={{ settingsPage: "vps-overview" }}
-            aria-current={overview ? "page" : undefined}
-            className={`mt-1 flex h-11 items-center gap-3 px-3 text-sm ${overview ? "border-l-2 border-white bg-white/10 text-white" : "text-zinc-500 hover:text-white"}`}
-          >
-            VPS overview
-          </Link>
-        )}
+        {owner &&
+          vpsTools.map((tool) => (
+            <Link
+              key={tool.slug}
+              to="/vps/$tool"
+              params={{ tool: tool.slug }}
+              aria-current={activeTool === tool.slug ? "page" : undefined}
+              className={`mt-1 flex h-11 items-center gap-3 border-l-2 px-3 text-sm transition hover:bg-white/15 ${activeTool === tool.slug ? "border-white bg-white/10 text-white" : "border-transparent text-zinc-500 hover:text-white"}`}
+            >
+              <AppIcon icon={tool.icon} size={16} />
+              <span>{tool.label}</span>
+            </Link>
+          ))}
         <Link
           to="/settings/$settingsPage"
           params={{ settingsPage: "domains" }}
-          className="mt-1 flex h-11 w-full items-center gap-3 px-3 text-zinc-500 transition hover:bg-white/5 hover:text-white"
+          aria-current={section === "settings" ? "page" : undefined}
+          className={`mt-1 flex h-11 w-full items-center gap-3 border-l-2 px-3 transition hover:bg-white/15 ${section === "settings" ? "border-white bg-white/10 text-white" : "border-transparent text-zinc-500 hover:text-white"}`}
         >
           <AppIcon icon={Settings01Icon} size={16} />
           <span className="text-sm">System settings</span>
@@ -121,15 +133,7 @@ export function ProjectsDashboardSidebar({
         ) : null}
       </nav>
 
-      {owner && (
-        <Link
-          to="/settings/$settingsPage"
-          params={{ settingsPage: "vps-overview" }}
-          className="ml-auto px-3 text-xs text-teal-300 lg:hidden"
-        >
-          VPS overview
-        </Link>
-      )}
+      <DashboardMobileNavigation owner={owner} />
       <div className="ml-auto flex items-center gap-2 lg:ml-0 lg:mt-auto lg:block">
         {owner && showSystemHealth ? (
           <div className="hidden lg:block">
